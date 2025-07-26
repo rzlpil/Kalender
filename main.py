@@ -2,6 +2,7 @@ import streamlit as st
 import calendar
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
+import math
 
 # Atur halaman
 st.set_page_config(layout="wide")
@@ -81,7 +82,7 @@ for week in weeks:
 # Hitung kehadiran
 jumlah_hadir = sum([1 for v in hadir_dict.values() if v is True])
 jumlah_tidak_hadir = total_hari_kerja - jumlah_hadir
-minimal_hadir = int(total_hari_kerja * 0.7)
+minimal_hadir = math.ceil(int(total_hari_kerja * 0.7))
 maks_tidak_hadir = total_hari_kerja - minimal_hadir
 
 # Tampilkan rekap
@@ -90,6 +91,7 @@ st.write(f"Total Hari Kerja: **{total_hari_kerja}**")
 st.write(f"Jumlah Hari Hadir: **{jumlah_hadir}**")
 st.write(f"Jumlah Hari Tidak Hadir: **{jumlah_tidak_hadir}**")
 st.write(f"Minimal Kehadiran (70%): **{minimal_hadir} hari**")
+st.write(f"Maksimal TIdak Hadir (30%): **{maks_tidak_hadir} hari**")
 
 if jumlah_hadir >= minimal_hadir:
     st.success("✅ Target kehadiran tercapai!")
