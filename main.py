@@ -199,3 +199,5 @@ with tab3:
 
     st.metric("Total Hari Kerja", total_hari_kerja)
     st.metric("Hari Masuk Bersamaan", hari_bersamaan)
+    uang_bensin = hari_bersamaan * 2500
+    st.metric("Uang Bensin", f"Rp {uang_bensin:,.0f}".replace(",", "."))
