@@ -118,7 +118,8 @@ with tab1:
     bolos_rizal = hari_kerja_rizal - hadir_rizal
 
     st.write(f"Total hari kerja: **{hari_kerja_rizal}**")
-    st.write(f"Hadir: **{hadir_rizal}**, Maks bolos: **{maks_bolos}**")
+    st.write(f"Hadir: **{hadir_rizal}**")
+    st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -155,7 +156,8 @@ with tab2:
     bolos_thesi = hari_kerja_thesi - hadir_thesi
 
     st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
-    st.write(f"Hadir: **{hadir_thesi}**, Maks bolos: **{maks_bolos}**")
+    st.write(f"Hadir: **{hadir_thesi}**")
+    st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
