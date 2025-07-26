@@ -3,25 +3,62 @@ import calendar
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 import math
+from pymongo import MongoClient
 
+# MongoDB Setup
+MONGO_URI = st.secrets["MONGO_URI"]
+client = MongoClient(MONGO_URI)
+db = client["kalender_db"]
+coll = db["kehadiran"]
+
+# Page setup
 st.set_page_config(layout="wide")
 
-# === Sidebar untuk Pilih Periode ===
+# Sidebar Pilih Periode
 st.sidebar.header("Pilih Bulan Awal")
 year = st.sidebar.number_input("Tahun", min_value=1900, max_value=2100, value=datetime.now().year)
 month = st.sidebar.selectbox("Bulan", list(calendar.month_name)[1:], index=datetime.now().month - 1)
 month_number = list(calendar.month_name).index(month)
 
-# Rentang tanggal: 16 bulan ini s.d. 15 bulan depan
+# Rentang Tanggal
 start_date = datetime(year, month_number, 16)
 end_date = datetime(year + 1, 1, 15) if month_number == 12 else datetime(year, month_number + 1, 15)
 date_list = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
 
-# Tanggal merah manual (contoh)
+# Tanggal merah (libur nasional)
 tanggal_merah = {"01-01", "17-08", "25-12", "10-04", "11-04", "12-04"}
 
-# === Fungsi Tampilkan Kalender ===
-def tampilkan_kalender(label_user):
+# Load dari MongoDB
+def load_kehadiran(user):
+    kehadiran = {}
+    for doc in coll.find({"user": user, "type": {"$ne": "catatan"}}):
+        tanggal = datetime.strptime(doc["tanggal"], '%Y-%m-%d')
+        kehadiran[tanggal] = doc.get("hadir", False)
+    catatan_doc = coll.find_one({"user": user, "type": "catatan"})
+    catatan = catatan_doc["catatan"] if catatan_doc else ""
+    return kehadiran, catatan
+
+# Simpan ke MongoDB
+def simpan_kehadiran(user, kehadiran, catatan):
+    records = []
+    for tanggal, hadir in kehadiran.items():
+        if tanggal:
+            records.append({
+                "user": user,
+                "tanggal": tanggal.strftime('%Y-%m-%d'),
+                "hadir": hadir
+            })
+    coll.delete_many({"user": user, "type": {"$ne": "catatan"}})
+    if records:
+        coll.insert_many(records)
+    coll.update_one(
+        {"user": user, "type": "catatan"},
+        {"$set": {"catatan": catatan, "type": "catatan"}},
+        upsert=True
+    )
+
+# Fungsi Kalender
+def tampilkan_kalender(label_user, default_kehadiran):
     st.markdown(f"### Kehadiran {label_user}")
     days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
 
@@ -62,17 +99,19 @@ def tampilkan_kalender(label_user):
                         hadir_dict[date] = None
                     else:
                         total_hari_kerja += 1
-                        hadir_dict[date] = st.checkbox(label, key=key)
+                        default = default_kehadiran.get(date, False)
+                        hadir_dict[date] = st.checkbox(label, key=key, value=default)
                 else:
                     st.markdown(" ")
-
     return hadir_dict, total_hari_kerja
 
-# === TABS ===
+# === Tabs ===
 tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 
+# Tab Rizal
 with tab1:
-    kehadiran_rizal, hari_kerja_rizal = tampilkan_kalender("Rizal")
+    default_rizal, catatan_default_rizal = load_kehadiran("Rizal")
+    kehadiran_rizal, hari_kerja_rizal = tampilkan_kalender("Rizal", default_rizal)
     hadir_rizal = sum(1 for v in kehadiran_rizal.values() if v is True)
     min_hadir = math.ceil(hari_kerja_rizal * 0.7)
     maks_bolos = hari_kerja_rizal - min_hadir
@@ -100,10 +139,16 @@ with tab1:
         st.success("✅ Target kehadiran tercapai.")
     else:
         st.error("❌ Target kehadiran tidak tercapai.")
-    catatan_rizal = st.text_area("Catatan Rizal", height=200, key="catatan_rizal")
-    
+    catatan_rizal = st.text_area("Catatan Rizal", height=200, value=catatan_default_rizal, key="catatan_rizal")
+
+    if st.button("💾 Simpan Rizal"):
+        simpan_kehadiran("Rizal", kehadiran_rizal, catatan_rizal)
+        st.success("✅ Data Rizal disimpan.")
+
+# Tab Thesi
 with tab2:
-    kehadiran_thesi, hari_kerja_thesi = tampilkan_kalender("Thesi")
+    default_thesi, catatan_default_thesi = load_kehadiran("Thesi")
+    kehadiran_thesi, hari_kerja_thesi = tampilkan_kalender("Thesi", default_thesi)
     hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
     min_hadir = math.ceil(hari_kerja_thesi * 0.7)
     maks_bolos = hari_kerja_thesi - min_hadir
@@ -120,20 +165,24 @@ with tab2:
             'bar': {'color': "red"},
             'steps': [
                 {'range': [0, maks_bolos], 'color': "lightcoral"},
-                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightgreen"},
+                {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightgreen"},
             ],
         },
         title={'text': "Jumlah Bolos"}
     ))
     st.plotly_chart(fig, use_container_width=True)
-    
+
     if hadir_thesi >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
     else:
         st.error("❌ Target kehadiran tidak tercapai.")
-    catatan_thesi = st.text_area("Catatan Thesi", height=200, key="catatan_thesi")
+    catatan_thesi = st.text_area("Catatan Thesi", height=200, value=catatan_default_thesi, key="catatan_thesi")
 
+    if st.button("💾 Simpan Thesi"):
+        simpan_kehadiran("Thesi", kehadiran_thesi, catatan_thesi)
+        st.success("✅ Data Thesi disimpan.")
 
+# Tab Rekap Bersamaan
 with tab3:
     st.markdown("### Jumlah Hari Masuk Bersamaan")
     hari_bersamaan = 0
