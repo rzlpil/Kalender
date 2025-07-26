@@ -88,13 +88,13 @@ with tab1:
             'axis': {'range': [0, hari_kerja_rizal]},
             'bar': {'color': "red"},
             'steps': [
-                {'range': [0, maks_bolos], 'color': "lightgreen"},
-                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightcoral"},
+                {'range': [0, maks_bolos], 'color': "lightcoral"},
+                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightgreen"},
             ],
         },
         title={'text': "Jumlah Bolos"}
     ))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="rizal_gauge")
 
     if hadir_rizal >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
@@ -118,8 +118,8 @@ with tab2:
             'axis': {'range': [0, hari_kerja_thesi]},
             'bar': {'color': "red"},
             'steps': [
-                {'range': [0, maks_bolos], 'color': "lightgreen"},
-                {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightcoral"},
+                {'range': [0, maks_bolos], 'color': "lightcoral"},
+                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightgreen"},
             ],
         },
         title={'text': "Jumlah Bolos"}
