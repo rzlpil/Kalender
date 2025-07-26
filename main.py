@@ -95,13 +95,13 @@ with tab1:
         title={'text': "Jumlah Bolos"}
     ))
     st.plotly_chart(fig, use_container_width=True, key="rizal_gauge")
-    catatan_rizal = st.text_area("Catatan Rizal", height=200, key="catatan_rizal")
 
     if hadir_rizal >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
     else:
         st.error("❌ Target kehadiran tidak tercapai.")
-
+    catatan_rizal = st.text_area("Catatan Rizal", height=200, key="catatan_rizal")
+    
 with tab2:
     kehadiran_thesi, hari_kerja_thesi = tampilkan_kalender("Thesi")
     hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
@@ -126,12 +126,13 @@ with tab2:
         title={'text': "Jumlah Bolos"}
     ))
     st.plotly_chart(fig, use_container_width=True)
-    catatan_thesi = st.text_area("Catatan Thesi", height=200, key="catatan_thesi")
-
+    
     if hadir_thesi >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
     else:
         st.error("❌ Target kehadiran tidak tercapai.")
+    catatan_thesi = st.text_area("Catatan Thesi", height=200, key="catatan_thesi")
+
 
 with tab3:
     st.markdown("### Jumlah Hari Masuk Bersamaan")
