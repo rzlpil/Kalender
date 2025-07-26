@@ -95,6 +95,7 @@ with tab1:
         title={'text': "Jumlah Bolos"}
     ))
     st.plotly_chart(fig, use_container_width=True, key="rizal_gauge")
+    catatan_rizal = st.text_area("Catatan Rizal", height=200, key="catatan_rizal")
 
     if hadir_rizal >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
@@ -125,6 +126,7 @@ with tab2:
         title={'text': "Jumlah Bolos"}
     ))
     st.plotly_chart(fig, use_container_width=True)
+    catatan_thesi = st.text_area("Catatan Thesi", height=200, key="catatan_thesi")
 
     if hadir_thesi >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
