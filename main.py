@@ -139,8 +139,8 @@ with tab1:
             'axis': {'range': [0, hari_kerja_rizal]},
             'bar': {'color': "red"},
             'steps': [
-                {'range': [0, maks_bolos], 'color': "lightcoral"},
-                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightgreen"},
+                {'range': [0, maks_bolos], 'color': "lightgreen"},
+                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightcoral"},
             ],
         },
         title={'text': "Jumlah Bolos"}
@@ -178,8 +178,8 @@ with tab2:
             'axis': {'range': [0, hari_kerja_thesi]},
             'bar': {'color': "red"},
             'steps': [
-                {'range': [0, maks_bolos], 'color': "lightcoral"},
-                {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightgreen"},
+                {'range': [0, maks_bolos], 'color': "lightgreen"},
+                {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightcoral"},
             ],
         },
         title={'text': "Jumlah Bolos"}
