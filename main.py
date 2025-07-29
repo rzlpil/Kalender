@@ -33,7 +33,7 @@ def load_kehadiran(user):
     kehadiran = {}
     for doc in coll.find({"user": user, "type": {"$ne": "catatan"}}):
         tanggal = datetime.strptime(doc["tanggal"], '%Y-%m-%d')
-        kehadiran[tanggal] = doc.get("hadir", True)
+        kehadiran[tanggal] = doc.get("hadir", False)
     catatan_doc = coll.find_one({"user": user, "type": "catatan"})
     catatan = catatan_doc["catatan"] if catatan_doc else ""
     return kehadiran, catatan
