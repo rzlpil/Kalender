@@ -61,7 +61,13 @@ def simpan_kehadiran(user, kehadiran, catatan):
 def tampilkan_kalender(label_user, default_kehadiran):
     st.markdown(f"### Kehadiran {label_user}")
     days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
+
     today = datetime.today().date()
+    hadir_dict = {}
+    total_hari_kerja = 0
+    hadir_sampai_hari_ini = 0
+
+    # Susun minggu
     weeks = []
     week = [""] * 7
     for date in date_list:
@@ -77,14 +83,13 @@ def tampilkan_kalender(label_user, default_kehadiran):
             week.append("")
         weeks.append(week)
 
+    # Tampilkan header hari
     cols = st.columns(7)
     for i, d in enumerate(days):
         with cols[i]:
             st.markdown(f"**{d}**")
 
-    hadir_dict = {}
-    total_hari_kerja = 0
-
+    # Tampilkan kalender
     for week in weeks:
         cols = st.columns(7)
         for i, date in enumerate(week):
@@ -100,12 +105,15 @@ def tampilkan_kalender(label_user, default_kehadiran):
                     else:
                         total_hari_kerja += 1
                         default = default_kehadiran.get(date, True)
-                        hadir_dict[date] = st.checkbox(label, key=key, value=default)
+                        hadir = st.checkbox(label, key=key, value=default)
+                        hadir_dict[date] = hadir
                         if date.date() <= today and hadir:
                             hadir_sampai_hari_ini += 1
                 else:
                     st.markdown(" ")
+
     return hadir_dict, total_hari_kerja, hadir_sampai_hari_ini
+
 
 # === Tabs ===
 tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
