@@ -101,9 +101,11 @@ def tampilkan_kalender(label_user, default_kehadiran):
                         total_hari_kerja += 1
                         default = default_kehadiran.get(date, True)
                         hadir_dict[date] = st.checkbox(label, key=key, value=default)
+                        if date.date() <= today and hadir:
+                            hadir_sampai_hari_ini += 1
                 else:
                     st.markdown(" ")
-    return hadir_dict, total_hari_kerja
+    return hadir_dict, total_hari_kerja, hadir_sampai_hari_ini
 
 # === Tabs ===
 tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
@@ -111,14 +113,15 @@ tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 # Tab Rizal
 with tab1:
     default_rizal, catatan_default_rizal = load_kehadiran("Rizal")
-    kehadiran_rizal, hari_kerja_rizal = tampilkan_kalender("Rizal", default_rizal)
+    kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender("Rizal", default_rizal)
     hadir_rizal = sum(1 for v in kehadiran_rizal.values() if v is True)
     min_hadir = math.ceil(hari_kerja_rizal * 0.7)
     maks_bolos = hari_kerja_rizal - min_hadir
     bolos_rizal = hari_kerja_rizal - hadir_rizal
 
     st.write(f"Total hari kerja: **{hari_kerja_rizal}**")
-    st.write(f"Hadir: **{hadir_rizal}**")
+    # st.write(f"Hadir: **{hadir_rizal}**")
+    st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_rizal} hari**")
     st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
@@ -149,14 +152,15 @@ with tab1:
 # Tab Thesi
 with tab2:
     default_thesi, catatan_default_thesi = load_kehadiran("Thesi")
-    kehadiran_thesi, hari_kerja_thesi = tampilkan_kalender("Thesi", default_thesi)
+    kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender("Thesi", default_thesi)
     hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
     min_hadir = math.ceil(hari_kerja_thesi * 0.7)
     maks_bolos = hari_kerja_thesi - min_hadir
     bolos_thesi = hari_kerja_thesi - hadir_thesi
 
     st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
-    st.write(f"Hadir: **{hadir_thesi}**")
+    # st.write(f"Hadir: **{hadir_thesi}**")
+    st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_thesi} hari**")
     st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
