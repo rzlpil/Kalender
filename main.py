@@ -61,7 +61,7 @@ def simpan_kehadiran(user, kehadiran, catatan):
 def tampilkan_kalender(label_user, default_kehadiran):
     st.markdown(f"### Kehadiran {label_user}")
     days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
-
+    today = datetime.today().date()
     weeks = []
     week = [""] * 7
     for date in date_list:
