@@ -198,7 +198,6 @@ with tab2:
 
 # Tab Rekap Bersamaan
 with tab3:
-    st.markdown("### Jumlah Hari Masuk Bersamaan")
     hari_bersamaan = 0
     total_hari_kerja = 0
     for d in date_list:
@@ -210,8 +209,9 @@ with tab3:
             thesi_hadir = kehadiran_thesi.get(d) is True
             if rizal_hadir and thesi_hadir:
                 hari_bersamaan += 1
-
+    
     st.metric("Total Hari Kerja", total_hari_kerja)
     st.metric("Hari Masuk Bersamaan", hari_bersamaan)
     uang_bensin = hari_bersamaan * 2500
     st.metric("Uang Bensin", f"Rp {uang_bensin:,.0f}".replace(",", "."))
+
