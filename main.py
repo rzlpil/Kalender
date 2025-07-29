@@ -127,9 +127,9 @@ with tab1:
     maks_bolos = hari_kerja_rizal - min_hadir
     bolos_rizal = hari_kerja_rizal - hadir_rizal
 
-    st.write(f"Total hari kerja: **{hari_kerja_rizal}**")
     # st.write(f"Hadir: **{hadir_rizal}**")
     st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_rizal} hari**")
+    st.write(f"Total hari kerja: **{hari_kerja_rizal}**")
     st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
@@ -166,9 +166,9 @@ with tab2:
     maks_bolos = hari_kerja_thesi - min_hadir
     bolos_thesi = hari_kerja_thesi - hadir_thesi
 
-    st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
     # st.write(f"Hadir: **{hadir_thesi}**")
     st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_thesi} hari**")
+    st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
     st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
