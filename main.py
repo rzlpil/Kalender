@@ -99,7 +99,7 @@ def tampilkan_kalender(label_user, default_kehadiran):
                         hadir_dict[date] = None
                     else:
                         total_hari_kerja += 1
-                        default = default_kehadiran.get(date, False)
+                        default = default_kehadiran.get(date, True)
                         hadir_dict[date] = st.checkbox(label, key=key, value=default)
                 else:
                     st.markdown(" ")
