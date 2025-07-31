@@ -173,21 +173,24 @@ with tab2:
     st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_thesi} hari**")
     st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
     st.write(f"Maks bolos: **{maks_bolos}**")
-
+    
     fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=bolos_thesi,
-        gauge={
-            'axis': {'range': [0, hari_kerja_thesi]},
-            'bar': {'color': "red"},
-            'steps': [
-                {'range': [0, maks_bolos], 'color': "lightgreen"},
-                {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightcoral"},
-            ],
-        },
-        title={'text': "Jumlah Bolos"}
+    mode="gauge+number",
+    value=bolos_thesi,
+    domain={'x': [0, 1], 'y': [0, 1]},
+    gauge={
+        'axis': {'range': [0, hari_kerja_thesi]},
+        'bar': {'color': "red"},
+        'steps': [
+            {'range': [0, maks_bolos], 'color': "lightgreen"},
+            {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightcoral"},
+        ],
+    },
+    title={'text': "Jumlah Bolos"}
     ))
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(height=350, margin=dict(t=50, b=20))
+    st.plotly_chart(fig, use_container_width=True, key="thesi_gauge")
+
 
     if hadir_thesi >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
