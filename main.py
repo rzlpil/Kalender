@@ -133,19 +133,22 @@ with tab1:
     st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=bolos_rizal,
-        gauge={
-            'axis': {'range': [0, hari_kerja_rizal]},
-            'bar': {'color': "red"},
-            'steps': [
-                {'range': [0, maks_bolos], 'color': "lightgreen"},
-                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightcoral"},
-            ],
-        },
-        title={'text': "Jumlah Bolos"}
+    mode="gauge+number",
+    value=bolos_rizal,
+    domain={'x': [0, 1], 'y': [0, 1]},
+    gauge={
+        'axis': {'range': [0, hari_kerja_rizal]},
+        'bar': {'color': "red"},
+        'steps': [
+            {'range': [0, maks_bolos], 'color': "lightgreen"},
+            {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightcoral"},
+        ],
+    },
+    title={'text': "Jumlah Bolos"}
     ))
+    fig.update_layout(height=350, margin=dict(t=50, b=20))
     st.plotly_chart(fig, use_container_width=True, key="rizal_gauge")
+
 
     if hadir_rizal >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
