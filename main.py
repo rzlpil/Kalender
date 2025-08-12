@@ -234,7 +234,7 @@ with tab3:
         hari_bersamaan = 0
 
         cek_tanggal = periode_awal
-        while cek_tanggal.date() <= periode_akhir.date():
+        while cek_tanggal <= periode_akhir:
             is_red = f"{cek_tanggal.day:02d}-{cek_tanggal.month:02d}" in tanggal_merah
             is_sunday = cek_tanggal.weekday() == 6
             if not is_red and not is_sunday:
