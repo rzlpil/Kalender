@@ -221,7 +221,7 @@ with tab3:
     periode_awal = start_rekap
     hasil_rekap = []
 
-    while periode_awal < today:
+    while periode_awal.date() < today:
         periode_akhir = periode_awal.replace(month=periode_awal.month % 12 + 1, day=16)
         if periode_awal.month == 12:
             periode_akhir = periode_awal.replace(year=periode_awal.year + 1, month=1, day=16)
