@@ -215,27 +215,27 @@ with tab2:
 with tab3:
     st.markdown("### Rekap Hari Masuk Bersamaan per Periode")
     today = datetime.today().date()
-    hari_ini = today
 
-    # Tentukan periode awal (misal mundur 6 bulan ke belakang)
+    # Tentukan periode awal (misal start_rekap sudah date object)
     periode_awal = start_rekap
     hasil_rekap = []
 
-    while periode_awal.date() < today:
-        periode_akhir = periode_awal.replace(month=periode_awal.month % 12 + 1, day=16)
+    while periode_awal < today:
+        # Hitung periode akhir = 16 bulan berikutnya
         if periode_awal.month == 12:
-            periode_akhir = periode_awal.replace(year=periode_awal.year + 1, month=1, day=16)
+            periode_akhir = date(periode_awal.year + 1, 1, 16)
+        else:
+            periode_akhir = date(periode_awal.year, periode_awal.month + 1, 16)
 
         # Jika periode akhir melewati hari ini, potong sampai hari ini
-        if periode_akhir.date() > today:
+        if periode_akhir > today:
             periode_akhir = today
 
         total_hari_kerja = 0
         hari_bersamaan = 0
 
-        # cek_tanggal = periode_awal
-        cek_tanggal = periode_awal.date()
-        periode_akhir = periode_akhir.date()
+        # Hitung dari periode_awal sampai periode_akhir
+        cek_tanggal = periode_awal
         while cek_tanggal <= periode_akhir:
             is_red = f"{cek_tanggal.day:02d}-{cek_tanggal.month:02d}" in tanggal_merah
             is_sunday = cek_tanggal.weekday() == 6
@@ -254,11 +254,12 @@ with tab3:
             "Uang Bensin": hari_bersamaan * 2500
         })
 
-        # Geser ke periode berikutnya
+        # Geser ke periode berikutnya (selalu mulai tanggal 17 bulan berikutnya)
         if periode_awal.month == 12:
-            periode_awal = periode_awal.replace(year=periode_awal.year + 1, month=1, day=17)
+            periode_awal = date(periode_awal.year + 1, 1, 17)
         else:
-            periode_awal = periode_awal.replace(month=periode_awal.month % 12 + 1, day=17)
+            periode_awal = date(periode_awal.year, periode_awal.month + 1, 17)
 
     st.table(hasil_rekap)
+
 
