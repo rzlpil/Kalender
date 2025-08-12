@@ -233,7 +233,9 @@ with tab3:
         total_hari_kerja = 0
         hari_bersamaan = 0
 
-        cek_tanggal = periode_awal
+        # cek_tanggal = periode_awal
+        cek_tanggal = periode_awal.date()
+        periode_akhir = periode_akhir.date()
         while cek_tanggal <= periode_akhir:
             is_red = f"{cek_tanggal.day:02d}-{cek_tanggal.month:02d}" in tanggal_merah
             is_sunday = cek_tanggal.weekday() == 6
