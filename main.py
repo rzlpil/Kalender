@@ -211,25 +211,52 @@ with tab2:
         st.success("✅ Data Thesi disimpan.")
 
 # Tab Rekap Bersamaan
+# Tab Rekap Bersamaan
 with tab3:
-    st.markdown("### Jumlah Hari Masuk Bersamaan (hingga hari ini)")
+    st.markdown("### Rekap Hari Masuk Bersamaan per Periode")
     today = datetime.today().date()
-    hari_bersamaan = 0
-    total_hari_kerja_rekap = 0
+    hari_ini = today
 
-    for d in rekap_date_list:
-        if d.date() > today:
-            continue
-        is_red = f"{d.day:02d}-{d.month:02d}" in tanggal_merah
-        is_sunday = d.weekday() == 6
-        if not is_red and not is_sunday:
-            total_hari_kerja_rekap += 1
-            rizal_hadir = kehadiran_rizal.get(d) is True
-            thesi_hadir = kehadiran_thesi.get(d) is True
-            if rizal_hadir and thesi_hadir:
-                hari_bersamaan += 1
+    # Tentukan periode awal (misal mundur 6 bulan ke belakang)
+    periode_awal = start_rekap
+    hasil_rekap = []
 
-    st.metric("Total Hari Kerja (rekap bensin)", total_hari_kerja_rekap)
-    st.metric("Hari Masuk Bersamaan", hari_bersamaan)
-    uang_bensin = hari_bersamaan * 2500
-    st.metric("Uang Bensin (sementara)", f"Rp {uang_bensin:,.0f}".replace(",", "."))
+    while periode_awal < today:
+        periode_akhir = periode_awal.replace(month=periode_awal.month % 12 + 1, day=16)
+        if periode_awal.month == 12:
+            periode_akhir = periode_awal.replace(year=periode_awal.year + 1, month=1, day=16)
+
+        # Jika periode akhir melewati hari ini, potong sampai hari ini
+        if periode_akhir.date() > today:
+            periode_akhir = today
+
+        total_hari_kerja = 0
+        hari_bersamaan = 0
+
+        cek_tanggal = periode_awal
+        while cek_tanggal.date() <= periode_akhir.date():
+            is_red = f"{cek_tanggal.day:02d}-{cek_tanggal.month:02d}" in tanggal_merah
+            is_sunday = cek_tanggal.weekday() == 6
+            if not is_red and not is_sunday:
+                total_hari_kerja += 1
+                rizal_hadir = kehadiran_rizal.get(cek_tanggal) is True
+                thesi_hadir = kehadiran_thesi.get(cek_tanggal) is True
+                if rizal_hadir and thesi_hadir:
+                    hari_bersamaan += 1
+            cek_tanggal += timedelta(days=1)
+
+        hasil_rekap.append({
+            "Periode": f"{periode_awal.strftime('%d %b %Y')} - {periode_akhir.strftime('%d %b %Y')}",
+            "Hari Kerja": total_hari_kerja,
+            "Masuk Bersamaan": hari_bersamaan,
+            "Uang Bensin": hari_bersamaan * 2500
+        })
+
+        # Geser ke periode berikutnya
+        if periode_awal.month == 12:
+            periode_awal = periode_awal.replace(year=periode_awal.year + 1, month=1, day=17)
+        else:
+            periode_awal = periode_awal.replace(month=periode_awal.month % 12 + 1, day=17)
+
+    st.table(hasil_rekap)
+
