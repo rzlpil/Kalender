@@ -211,30 +211,27 @@ with tab2:
         st.success("✅ Data Thesi disimpan.")
 
 # Tab Rekap Bersamaan
-# Tab Rekap Bersamaan
 with tab3:
     st.markdown("### Rekap Hari Masuk Bersamaan per Periode")
-    today = datetime.today().date()
 
-    # Tentukan periode awal (misal start_rekap sudah date object)
-    periode_awal = start_rekap
+    today = date.today()  # langsung date
+    periode_awal = start_rekap.date()  # pastikan date
     hasil_rekap = []
 
     while periode_awal < today:
-        # Hitung periode akhir = 16 bulan berikutnya
+        # Tentukan periode akhir (16 bulan berikutnya)
         if periode_awal.month == 12:
             periode_akhir = date(periode_awal.year + 1, 1, 16)
         else:
             periode_akhir = date(periode_awal.year, periode_awal.month + 1, 16)
 
-        # Jika periode akhir melewati hari ini, potong sampai hari ini
+        # Jika periode akhir lewat hari ini, potong
         if periode_akhir > today:
             periode_akhir = today
 
         total_hari_kerja = 0
         hari_bersamaan = 0
 
-        # Hitung dari periode_awal sampai periode_akhir
         cek_tanggal = periode_awal
         while cek_tanggal <= periode_akhir:
             is_red = f"{cek_tanggal.day:02d}-{cek_tanggal.month:02d}" in tanggal_merah
@@ -254,12 +251,10 @@ with tab3:
             "Uang Bensin": hari_bersamaan * 2500
         })
 
-        # Geser ke periode berikutnya (selalu mulai tanggal 17 bulan berikutnya)
+        # Geser ke periode berikutnya (mulai 17)
         if periode_awal.month == 12:
             periode_awal = date(periode_awal.year + 1, 1, 17)
         else:
             periode_awal = date(periode_awal.year, periode_awal.month + 1, 17)
 
     st.table(hasil_rekap)
-
-
