@@ -20,10 +20,23 @@ year = st.sidebar.number_input("Tahun", min_value=1900, max_value=2100, value=da
 month = st.sidebar.selectbox("Bulan", list(calendar.month_name)[1:], index=datetime.now().month - 1)
 month_number = list(calendar.month_name).index(month)
 
-# Rentang Tanggal
-start_date = datetime(year, month_number, 16)
-end_date = datetime(year + 1, 1, 15) if month_number == 12 else datetime(year, month_number + 1, 15)
-date_list = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+# ===== Range Absen =====
+if month_number == 1:  # Januari
+    start_absen = datetime(year - 1, 12, 11)
+else:
+    start_absen = datetime(year, month_number - 1, 11)
+
+end_absen = datetime(year, month_number, 10)
+date_list = [start_absen + timedelta(days=i) for i in range((end_absen - start_absen).days + 1)]
+
+# ===== Range Rekap Bensin =====
+if month_number == 1:  # Januari
+    start_rekap = datetime(year - 1, 12, 17)
+else:
+    start_rekap = datetime(year, month_number - 1, 17)
+
+end_rekap = datetime(year, month_number, 16)
+rekap_date_list = [start_rekap + timedelta(days=i) for i in range((end_rekap - start_rekap).days + 1)]
 
 # Tanggal merah (libur nasional)
 tanggal_merah = {"01-01", "17-08", "25-12", "10-04", "11-04", "12-04"}
@@ -114,7 +127,6 @@ def tampilkan_kalender(label_user, default_kehadiran):
 
     return hadir_dict, total_hari_kerja, hadir_sampai_hari_ini
 
-
 # === Tabs ===
 tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 
@@ -127,28 +139,26 @@ with tab1:
     maks_bolos = hari_kerja_rizal - min_hadir
     bolos_rizal = hari_kerja_rizal - hadir_rizal
 
-    # st.write(f"Hadir: **{hadir_rizal}**")
     st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_rizal} hari**")
     st.write(f"Total hari kerja: **{hari_kerja_rizal}**")
     st.write(f"Maks bolos: **{maks_bolos}**")
 
     fig = go.Figure(go.Indicator(
-    mode="gauge+number",
-    value=bolos_rizal,
-    domain={'x': [0, 1], 'y': [0, 1]},
-    gauge={
-        'axis': {'range': [0, hari_kerja_rizal]},
-        'bar': {'color': "red"},
-        'steps': [
-            {'range': [0, maks_bolos], 'color': "lightgreen"},
-            {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightcoral"},
-        ],
-    },
-    title={'text': "Jumlah Bolos"}
+        mode="gauge+number",
+        value=bolos_rizal,
+        domain={'x': [0, 1], 'y': [0, 1]},
+        gauge={
+            'axis': {'range': [0, hari_kerja_rizal]},
+            'bar': {'color': "red"},
+            'steps': [
+                {'range': [0, maks_bolos], 'color': "lightgreen"},
+                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightcoral"},
+            ],
+        },
+        title={'text': "Jumlah Bolos"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
     st.plotly_chart(fig, use_container_width=True, key="rizal_gauge")
-
 
     if hadir_rizal >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
@@ -169,28 +179,26 @@ with tab2:
     maks_bolos = hari_kerja_thesi - min_hadir
     bolos_thesi = hari_kerja_thesi - hadir_thesi
 
-    # st.write(f"Hadir: **{hadir_thesi}**")
     st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_thesi} hari**")
     st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
     st.write(f"Maks bolos: **{maks_bolos}**")
     
     fig = go.Figure(go.Indicator(
-    mode="gauge+number",
-    value=bolos_thesi,
-    domain={'x': [0, 1], 'y': [0, 1]},
-    gauge={
-        'axis': {'range': [0, hari_kerja_thesi]},
-        'bar': {'color': "red"},
-        'steps': [
-            {'range': [0, maks_bolos], 'color': "lightgreen"},
-            {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightcoral"},
-        ],
-    },
-    title={'text': "Jumlah Bolos"}
+        mode="gauge+number",
+        value=bolos_thesi,
+        domain={'x': [0, 1], 'y': [0, 1]},
+        gauge={
+            'axis': {'range': [0, hari_kerja_thesi]},
+            'bar': {'color': "red"},
+            'steps': [
+                {'range': [0, maks_bolos], 'color': "lightgreen"},
+                {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightcoral"},
+            ],
+        },
+        title={'text': "Jumlah Bolos"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
     st.plotly_chart(fig, use_container_width=True, key="thesi_gauge")
-
 
     if hadir_thesi >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
@@ -207,23 +215,21 @@ with tab3:
     st.markdown("### Jumlah Hari Masuk Bersamaan (hingga hari ini)")
     today = datetime.today().date()
     hari_bersamaan = 0
-    total_hari_kerja = 0
+    total_hari_kerja_rekap = 0
 
-    for d in date_list:
+    for d in rekap_date_list:
         if d.date() > today:
             continue
         is_red = f"{d.day:02d}-{d.month:02d}" in tanggal_merah
         is_sunday = d.weekday() == 6
         if not is_red and not is_sunday:
-            total_hari_kerja += 1
+            total_hari_kerja_rekap += 1
             rizal_hadir = kehadiran_rizal.get(d) is True
             thesi_hadir = kehadiran_thesi.get(d) is True
             if rizal_hadir and thesi_hadir:
                 hari_bersamaan += 1
 
-    st.metric("Total Hari Kerja (sampai hari ini)", total_hari_kerja)
+    st.metric("Total Hari Kerja (rekap bensin)", total_hari_kerja_rekap)
     st.metric("Hari Masuk Bersamaan", hari_bersamaan)
     uang_bensin = hari_bersamaan * 2500
     st.metric("Uang Bensin (sementara)", f"Rp {uang_bensin:,.0f}".replace(",", "."))
-
-
