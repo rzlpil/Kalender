@@ -35,18 +35,33 @@ def prev_month_year(y, m):
 
 pm_year, pm_month = prev_month_year(year, month_number)
 
-# ===== Range Absen (date objects) =====
-start_absen = date(pm_year, pm_month, 11)
-end_absen = date(year, month_number, 10)
-date_list = [start_absen + timedelta(days=i) for i in range((end_absen - start_absen).days + 1)]
+# --------------------------
+# Range Absen Rizal (13 -> 12)
+# --------------------------
+start_absen_rizal = date(pm_year, pm_month, 13)
+end_absen_rizal = date(year, month_number, 12)
+date_list_rizal = [start_absen_rizal + timedelta(days=i)
+                   for i in range((end_absen_rizal - start_absen_rizal).days + 1)]
 
-# ===== Range Rekap Bensin (date objects) =====
+# --------------------------
+# Range Absen Thesi (11 -> 10)
+# --------------------------
+start_absen_thesi = date(pm_year, pm_month, 11)
+end_absen_thesi = date(year, month_number, 10)
+date_list_thesi = [start_absen_thesi + timedelta(days=i)
+                   for i in range((end_absen_thesi - start_absen_thesi).days + 1)]
+
+# --------------------------
+# Range Rekap Bensin (17 -> 16)
+# --------------------------
 start_rekap = date(pm_year, pm_month, 17)
 end_rekap = date(year, month_number, 16)
-# rekap_date_list not strictly necessary but kept for potential use
-rekap_date_list = [start_rekap + timedelta(days=i) for i in range((end_rekap - start_rekap).days + 1)]
+rekap_date_list = [start_rekap + timedelta(days=i)
+                   for i in range((end_rekap - start_rekap).days + 1)]
 
-# Tanggal merah (libur nasional) format DD-MM
+# --------------------------
+# Tanggal merah (libur nasional)
+# --------------------------
 tanggal_merah = {"01-01", "17-08", "25-12", "10-04", "11-04", "12-04"}
 
 # --------------------------
@@ -100,7 +115,7 @@ def simpan_kehadiran(user, kehadiran, catatan):
 # --------------------------
 # Fungsi Kalender (pakai date_list)
 # --------------------------
-def tampilkan_kalender(label_user, default_kehadiran):
+def tampilkan_kalender(label_user, default_kehadiran, date_list):
     st.markdown(f"### Kehadiran {label_user}")
     days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
 
@@ -109,12 +124,9 @@ def tampilkan_kalender(label_user, default_kehadiran):
     total_hari_kerja = 0
     hadir_sampai_hari_ini = 0
 
-    # Susun minggu (list of weeks, each week is length 7, elements either date or "")
+    # Susun minggu
     weeks = []
-    week = []
-    # Start week with blanks until the first date's weekday
-    first_weekday = date_list[0].weekday()  # 0=Mon ... 6=Sun
-    week = [""] * first_weekday
+    week = [""] * date_list[0].weekday()
 
     for d in date_list:
         week.append(d)
@@ -122,18 +134,17 @@ def tampilkan_kalender(label_user, default_kehadiran):
             weeks.append(week)
             week = []
     if week:
-        # pad the last week
         while len(week) < 7:
             week.append("")
         weeks.append(week)
 
-    # header
+    # Header hari
     cols = st.columns(7)
     for i, dow in enumerate(days):
         with cols[i]:
             st.markdown(f"**{dow}**")
 
-    # kalender
+    # Isi kalender
     for week in weeks:
         cols = st.columns(7)
         for i, d in enumerate(week):
@@ -166,7 +177,7 @@ tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 # Tab Rizal
 with tab1:
     default_rizal, catatan_default_rizal = load_kehadiran("Rizal")
-    kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender("Rizal", default_rizal)
+    kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender("Rizal", default_rizal, date_list_rizal)
     hadir_rizal = sum(1 for v in kehadiran_rizal.values() if v is True)
     min_hadir = math.ceil(hari_kerja_rizal * 0.7)
     maks_bolos = hari_kerja_rizal - min_hadir
@@ -206,7 +217,7 @@ with tab1:
 # Tab Thesi
 with tab2:
     default_thesi, catatan_default_thesi = load_kehadiran("Thesi")
-    kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender("Thesi", default_thesi)
+    kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender("Thesi", default_thesi, date_list_thesi)
     hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
     min_hadir = math.ceil(hari_kerja_thesi * 0.7)
     maks_bolos = hari_kerja_thesi - min_hadir
