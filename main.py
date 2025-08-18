@@ -68,18 +68,11 @@ tanggal_merah = {"01-01", "17-08", "25-12", "10-04", "11-04", "12-04"}
 # Load dari MongoDB
 # --------------------------
 def load_kehadiran(user):
-    """
-    Return:
-      kehadiran: dict with keys = datetime.date, values = bool (True/False) or None for libur
-      catatan: string
-    """
     kehadiran = {}
     for doc in coll.find({"user": user, "type": {"$ne": "catatan"}}):
-        # dokumen menyimpan tanggal sebagai 'YYYY-MM-DD'
         try:
             d = datetime.strptime(doc["tanggal"], '%Y-%m-%d').date()
         except Exception:
-            # jika format beda, skip
             continue
         kehadiran[d] = doc.get("hadir", False)
     catatan_doc = coll.find_one({"user": user, "type": "catatan"})
@@ -90,9 +83,6 @@ def load_kehadiran(user):
 # Simpan ke MongoDB
 # --------------------------
 def simpan_kehadiran(user, kehadiran, catatan):
-    """
-    kehadiran: dict(date -> bool/None)
-    """
     records = []
     for tanggal, hadir in kehadiran.items():
         if tanggal:
@@ -101,11 +91,9 @@ def simpan_kehadiran(user, kehadiran, catatan):
                 "tanggal": tanggal.strftime('%Y-%m-%d'),
                 "hadir": bool(hadir) if hadir is not None else None
             })
-    # hapus semua record lama untuk user (kecuali 'catatan'), lalu insert baru
     coll.delete_many({"user": user, "type": {"$ne": "catatan"}})
     if records:
         coll.insert_many(records)
-    # simpan catatan
     coll.update_one(
         {"user": user, "type": "catatan"},
         {"$set": {"catatan": catatan, "type": "catatan"}},
@@ -113,13 +101,10 @@ def simpan_kehadiran(user, kehadiran, catatan):
     )
 
 # --------------------------
-# Fungsi Kalender (pakai date_list)
 # Fungsi Kalender Auto-save
 # --------------------------
-# def tampilkan_kalender(label_user, default_kehadiran, date_list):
 def tampilkan_kalender_autosave(label_user, date_list):
     st.markdown(f"### Kehadiran {label_user}")
-    days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
 
     # Load dari session_state atau MongoDB
     if f"kehadiran_{label_user}" not in st.session_state:
@@ -130,14 +115,12 @@ def tampilkan_kalender_autosave(label_user, date_list):
     hadir_dict = st.session_state[f"kehadiran_{label_user}"]
     days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
     today = date.today()
-    hadir_dict = {}
     total_hari_kerja = 0
     hadir_sampai_hari_ini = 0
 
     # Susun minggu
     weeks = []
     week = [""] * date_list[0].weekday()
-
     for d in date_list:
         week.append(d)
         if len(week) == 7:
@@ -148,7 +131,6 @@ def tampilkan_kalender_autosave(label_user, date_list):
             week.append("")
         weeks.append(week)
 
-    # Header hari
     # Header
     cols = st.columns(7)
     for i, dow in enumerate(days):
@@ -172,10 +154,6 @@ def tampilkan_kalender_autosave(label_user, date_list):
                     hadir_dict[d] = None
                 else:
                     total_hari_kerja += 1
-                    default = default_kehadiran.get(d, True)
-                    hadir = st.checkbox(label, key=key, value=default)
-                    hadir_dict[d] = hadir
-                    if d <= today and hadir:
                     default_val = hadir_dict.get(d, True)
 
                     # Checkbox auto-save
@@ -196,13 +174,11 @@ tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 
 # Tab Rizal
 with tab1:
-    default_rizal, catatan_default_rizal = load_kehadiran("Rizal")
-    kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender("Rizal", default_rizal, date_list_rizal)
     kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender_autosave("Rizal", date_list_rizal)
     hadir_rizal = sum(1 for v in kehadiran_rizal.values() if v is True)
     min_hadir = math.ceil(hari_kerja_rizal * 0.7)
     maks_bolos = hari_kerja_rizal - min_hadir
-    bolos = max(0, hari_kerja_rizal - hadir_sampai_hari_ini_rizal)
+    bolos_rizal = hari_kerja_rizal - hadir_rizal
 
     st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_rizal} hari**")
     st.write(f"Total hari kerja: **{hari_kerja_rizal}**")
@@ -223,37 +199,30 @@ with tab1:
         title={'text': "Jumlah Bolos"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
-    st.plotly_chart(fig, use_container_width=True, key="rizal_gauge")
     st.plotly_chart(fig, use_container_width=True)
 
     if hadir_rizal >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
     else:
         st.error("❌ Target kehadiran tidak tercapai.")
-    catatan_rizal = st.text_area("Catatan Rizal", height=200, value=catatan_default_rizal, key="catatan_rizal")
 
-    if st.button("💾 Simpan Rizal"):
     # Catatan dengan auto-save
     catatan_rizal = st.text_area("Catatan Rizal", height=200, value=st.session_state["catatan_Rizal"])
     if catatan_rizal != st.session_state["catatan_Rizal"]:
         st.session_state["catatan_Rizal"] = catatan_rizal
         simpan_kehadiran("Rizal", kehadiran_rizal, catatan_rizal)
-        st.success("✅ Data Rizal disimpan.")
 
 # Tab Thesi
 with tab2:
-    default_thesi, catatan_default_thesi = load_kehadiran("Thesi")
-    kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender("Thesi", default_thesi, date_list_thesi)
     kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender_autosave("Thesi", date_list_thesi)
     hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
     min_hadir = math.ceil(hari_kerja_thesi * 0.7)
     maks_bolos = hari_kerja_thesi - min_hadir
-    bolos = max(0, hari_kerja_thesi - hadir_sampai_hari_ini_thesi)
+    bolos_thesi = hari_kerja_thesi - hadir_thesi
 
     st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_thesi} hari**")
     st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
     st.write(f"Maks bolos: **{maks_bolos}**")
-    
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -270,48 +239,35 @@ with tab2:
         title={'text': "Jumlah Bolos"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
-    st.plotly_chart(fig, use_container_width=True, key="thesi_gauge")
     st.plotly_chart(fig, use_container_width=True)
 
     if hadir_thesi >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
     else:
         st.error("❌ Target kehadiran tidak tercapai.")
-    catatan_thesi = st.text_area("Catatan Thesi", height=200, value=catatan_default_thesi, key="catatan_thesi")
 
-    if st.button("💾 Simpan Thesi"):
     # Catatan auto-save
     catatan_thesi = st.text_area("Catatan Thesi", height=200, value=st.session_state["catatan_Thesi"])
     if catatan_thesi != st.session_state["catatan_Thesi"]:
         st.session_state["catatan_Thesi"] = catatan_thesi
         simpan_kehadiran("Thesi", kehadiran_thesi, catatan_thesi)
-        st.success("✅ Data Thesi disimpan.")
 
 # Tab Rekap Bersamaan
 with tab3:
     st.markdown("### Rekap Hari Masuk Bersamaan per Periode (17→16)")
     today = date.today()
-    periode_awal = start_rekap  # already date
     periode_awal = start_rekap
     hasil_rekap = []
 
-    # Pastikan default kehadiran sudah di-load supaya kehadiran_rizal/thesi tersedia
-    default_rizal, _ = load_kehadiran("Rizal")
-    default_thesi, _ = load_kehadiran("Thesi")
-    kehadiran_rizal = default_rizal
-    kehadiran_thesi = default_thesi
     kehadiran_rizal, _ = load_kehadiran("Rizal")
     kehadiran_thesi, _ = load_kehadiran("Thesi")
 
-    # Loop periode 17..16 per bulan sampai hari ini
     while periode_awal <= today:
-        # periode akhir = tanggal 16 bulan berikutnya
         if periode_awal.month == 12:
             periode_akhir = date(periode_awal.year + 1, 1, 16)
         else:
             periode_akhir = date(periode_awal.year, periode_awal.month + 1, 16)
 
-        # jika periode akhir melewati hari ini, pangkas
         if periode_akhir > today:
             periode_akhir = today
 
@@ -324,9 +280,6 @@ with tab3:
             is_sunday = cek_tanggal.weekday() == 6
             if not is_red and not is_sunday:
                 total_hari_kerja += 1
-                rizal_hadir = kehadiran_rizal.get(cek_tanggal) is True
-                thesi_hadir = kehadiran_thesi.get(cek_tanggal) is True
-                if rizal_hadir and thesi_hadir:
                 if kehadiran_rizal.get(cek_tanggal) and kehadiran_thesi.get(cek_tanggal):
                     hari_bersamaan += 1
             cek_tanggal += timedelta(days=1)
@@ -338,7 +291,6 @@ with tab3:
             "Uang Bensin": hari_bersamaan * 2500
         })
 
-        # geser ke periode berikutnya (mulai 17 bulan berikutnya)
         if periode_awal.month == 12:
             periode_awal = date(periode_awal.year + 1, 1, 17)
         else:
@@ -346,9 +298,6 @@ with tab3:
 
     st.table(hasil_rekap)
 
-    # --------------------------
-    # Tambahan: filter tanggal custom oleh user
-    # --------------------------
     # Rekap manual
     st.markdown("----")
     st.markdown("### Rekap Manual (Pilih rentang tanggal sendiri)")
@@ -361,7 +310,6 @@ with tab3:
     if manual_end < manual_start:
         st.error("Tanggal akhir tidak boleh sebelum tanggal awal.")
     else:
-        # hitung total hari kerja (exclude libur & minggu) dan hari bersamaan di rentang ini
         total_hari_kerja_manual = 0
         hari_bersamaan_manual = 0
         cek_t = manual_start
@@ -370,16 +318,10 @@ with tab3:
             is_sunday = cek_t.weekday() == 6
             if not is_red and not is_sunday:
                 total_hari_kerja_manual += 1
-                rizal_hadir = kehadiran_rizal.get(cek_t) is True
-                thesi_hadir = kehadiran_thesi.get(cek_t) is True
-                if rizal_hadir and thesi_hadir:
                 if kehadiran_rizal.get(cek_t) and kehadiran_thesi.get(cek_t):
                     hari_bersamaan_manual += 1
             cek_t += timedelta(days=1)
 
-        uang_bensin_manual = hari_bersamaan_manual * 2500
-
         st.metric("Total Hari Kerja (rentang)", total_hari_kerja_manual)
         st.metric("Hari Masuk Bersamaan", hari_bersamaan_manual)
-        st.metric("Uang Bensin (Rp)", f"Rp {uang_bensin_manual:,.0f}".replace(",", "."))
         st.metric("Uang Bensin (Rp)", f"Rp {hari_bersamaan_manual * 2500:,.0f}".replace(",", "."))
