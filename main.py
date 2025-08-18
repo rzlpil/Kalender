@@ -175,7 +175,7 @@ tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 # Tab Rizal
 with tab1:
     kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender_autosave("Rizal", date_list_rizal)
-    hadir_rizal = sum(1 for v in kehadiran_rizal.values() if v is True)
+    hadir_rizal = sum(1 for d, v in kehadiran_rizal.items() if d in date_list_rizal and v is True)
     min_hadir = math.ceil(hari_kerja_rizal * 0.7)
     maks_bolos = hari_kerja_rizal - min_hadir
     bolos_rizal = hari_kerja_rizal - hadir_rizal
@@ -215,7 +215,7 @@ with tab1:
 # Tab Thesi
 with tab2:
     kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender_autosave("Thesi", date_list_thesi)
-    hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
+    hadir_thesi = sum(1 for d, v in kehadiran_thesi.items() if d in date_list_thesi and v is True)
     min_hadir = math.ceil(hari_kerja_thesi * 0.7)
     maks_bolos = hari_kerja_thesi - min_hadir
     bolos_thesi = hari_kerja_thesi - hadir_thesi
