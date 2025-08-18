@@ -199,7 +199,7 @@ with tab1:
         title={'text': "Jumlah Bolos"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="gauge_rizal")
 
     if hadir_rizal >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
@@ -239,7 +239,8 @@ with tab2:
         title={'text': "Jumlah Bolos"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="gauge_thesi")
+
 
     if hadir_thesi >= min_hadir:
         st.success("✅ Target kehadiran tercapai.")
