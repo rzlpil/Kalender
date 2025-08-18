@@ -116,7 +116,7 @@ def simpan_kehadiran(user, kehadiran, catatan):
 # Fungsi Kalender (pakai date_list)
 # Fungsi Kalender Auto-save
 # --------------------------
-def tampilkan_kalender(label_user, default_kehadiran, date_list):
+# def tampilkan_kalender(label_user, default_kehadiran, date_list):
 def tampilkan_kalender_autosave(label_user, date_list):
     st.markdown(f"### Kehadiran {label_user}")
     days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
