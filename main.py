@@ -171,7 +171,7 @@ def tampilkan_kalender_autosave(label_user, date_list):
 # Tabs
 # --------------------------
 tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
-
+today = date.today()
 # Tab Rizal
 # Tab Rizal
 with tab1:
