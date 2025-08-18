@@ -16,120 +16,117 @@ coll = db["kehadiran"]
 # Page setup
 # --------------------------
 st.set_page_config(page_title="Kalender Kehadiran", layout="wide")
+st.title("📅 Kalender Kehadiran")
 
 # --------------------------
-# Util
+# Input bulan & tahun
 # --------------------------
-def get_date_list(year, month):
-    c = calendar.Calendar(firstweekday=0)
-    return list(c.itermonthdates(year, month))
+today = date.today()
+tahun = st.sidebar.number_input("Tahun", min_value=2000, max_value=2100, value=today.year)
+bulan = st.sidebar.number_input("Bulan", min_value=1, max_value=12, value=today.month)
 
-def load_data(label_user, date_list):
-    doc = coll.find_one({"user": label_user})
+# --------------------------
+# Daftar tanggal merah (manual contoh)
+# --------------------------
+tanggal_merah = [
+    "01-01", "17-08", "25-12"  # contoh: Tahun Baru, Kemerdekaan, Natal
+]
+
+# --------------------------
+# Generate minggu dalam bulan
+# --------------------------
+cal = calendar.Calendar(firstweekday=0)  # 0 = Senin
+weeks = cal.monthdatescalendar(tahun, bulan)
+
+# --------------------------
+# Load data dari DB
+# --------------------------
+def load_data(nama):
+    doc = coll.find_one({"nama": nama, "tahun": tahun, "bulan": bulan})
     if doc:
-        return doc.get("data", {}), doc.get("notes", "")
-    else:
-        return {}, ""
+        return [datetime.strptime(d, "%Y-%m-%d").date() for d in doc["tanggal"]]
+    return []
 
-def save_data(label_user, data, notes):
+# --------------------------
+# Save data ke DB
+# --------------------------
+def save_data(nama, date_list):
     coll.update_one(
-        {"user": label_user},
-        {"$set": {"data": data, "notes": notes}},
-        upsert=True,
+        {"nama": nama, "tahun": tahun, "bulan": bulan},
+        {"$set": {"tanggal": [d.isoformat() for d in date_list]}},
+        upsert=True
     )
 
 # --------------------------
-# Kalender dengan autosave
+# Tampilkan kalender autosave
 # --------------------------
 def tampilkan_kalender_autosave(label_user, date_list):
-    today = date.today()
-    tahun, bulan = today.year, today.month
+    today = date.today()  # ✅ fix NameError
 
-    st.subheader(f"Kalender Kehadiran {label_user} - {calendar.month_name[bulan]} {tahun}")
-
-    # Load dari DB
-    data, notes = load_data(label_user, date_list)
-
-    # Tanggal merah manual
-    tanggal_merah = {
-        "01-01", "08-03", "17-08", "25-12"
-    }
-
-    # Bikin grid kalender
-    weeks = []
-    week = []
-    for d in date_list:
-        if d.month == bulan:
-            week.append(d)
-            if len(week) == 7:
-                weeks.append(week)
-                week = []
-    if week:
-        weeks.append(week)
-
-    # Render minggu per minggu
     for week_idx, week in enumerate(weeks):
         cols = st.columns(7)
         for i, d in enumerate(week):
             with cols[i]:
-                label = f"{d.day:02d}"
-                default_val = data.get(d.isoformat(), False)
+                if d.month == bulan and d.year == tahun:
+                    label = f"{d.day}"
+                    default_val = d in date_list
 
-                # Checkbox unik
-                key = f"{label_user}_{d.isoformat()}_{week_idx}_{i}"
-                new_val = st.checkbox(label, key=key, value=default_val)
+                    # ✅ fix duplicate key
+                    key = f"{label_user}_{d.isoformat()}_{week_idx}_{i}"
 
-                if new_val != default_val:
-                    data[d.isoformat()] = new_val
-                    save_data(label_user, data, notes)
+                    new_val = st.checkbox(label, key=key, value=default_val)
 
-    # Catatan user
-    new_notes = st.text_area("Catatan", value=notes, key=f"catatan_{label_user}")
-    if new_notes != notes:
-        save_data(label_user, data, new_notes)
+                    if new_val != default_val:
+                        if new_val and d not in date_list:
+                            date_list.append(d)
+                        elif not new_val and d in date_list:
+                            date_list.remove(d)
+                        save_data(label_user, date_list)  # auto-save
 
-    # Statistik
+    # hitung hari kerja
     hari_kerja_sampai_hari_ini = sum(
         1 for d in date_list
         if d <= today and d.weekday() < 6 and f"{d.day:02d}-{d.month:02d}" not in tanggal_merah
     )
+
     hadir_sampai_hari_ini = sum(
-        1 for d in date_list if d <= today and data.get(d.isoformat(), False)
+        1 for d in date_list if d <= today and d.weekday() < 6
     )
 
-    st.write(f"Total hari kerja sampai hari ini: {hari_kerja_sampai_hari_ini}")
-    st.write(f"Total hadir {label_user} sampai hari ini: {hadir_sampai_hari_ini}")
-
-    return data, hari_kerja_sampai_hari_ini, hadir_sampai_hari_ini
+    return date_list, hari_kerja_sampai_hari_ini, hadir_sampai_hari_ini
 
 # --------------------------
 # Tabs
 # --------------------------
 tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 
-today = date.today()
-tahun, bulan = today.year, today.month
-date_list_rizal = get_date_list(tahun, bulan)
-date_list_thesi = get_date_list(tahun, bulan)
-
 # Tab Rizal
 with tab1:
+    date_list_rizal = load_data("Rizal")
     kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender_autosave("Rizal", date_list_rizal)
+
+    st.subheader("Statistik Rizal")
+    st.write(f"Hari kerja sampai hari ini: {hari_kerja_rizal}")
+    st.write(f"Hadir sampai hari ini: {hadir_sampai_hari_ini_rizal}")
 
 # Tab Thesi
 with tab2:
+    date_list_thesi = load_data("Thesi")
     kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender_autosave("Thesi", date_list_thesi)
 
-# Tab Rekap
+    st.subheader("Statistik Thesi")
+    st.write(f"Hari kerja sampai hari ini: {hari_kerja_thesi}")
+    st.write(f"Hadir sampai hari ini: {hadir_sampai_hari_ini_thesi}")
+
+# Tab Rekap Bersamaan
 with tab3:
-    st.subheader("Rekap Kehadiran Bersamaan")
+    st.subheader("📊 Rekap Bersamaan")
 
-    hadir_bersamaan = sum(
-        1 for d in date_list_rizal
-        if kehadiran_rizal.get(d.isoformat(), False) and kehadiran_thesi.get(d.isoformat(), False)
-    )
+    total_rizal = len(kehadiran_rizal)
+    total_thesi = len(kehadiran_thesi)
 
-    st.write(f"Hari kerja sampai hari ini: {hari_kerja_rizal}")
-    st.write(f"Rizal hadir {hadir_sampai_hari_ini_rizal} hari")
-    st.write(f"Thesi hadir {hadir_sampai_hari_ini_thesi} hari")
-    st.write(f"Hadir bersamaan: {hadir_bersamaan} hari")
+    st.write(f"Total kehadiran Rizal: {total_rizal}")
+    st.write(f"Total kehadiran Thesi: {total_thesi}")
+
+    sama2_hadir = len(set(kehadiran_rizal) & set(kehadiran_thesi))
+    st.write(f"Sama-sama hadir: {sama2_hadir}")
