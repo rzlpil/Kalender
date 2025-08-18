@@ -173,38 +173,50 @@ def tampilkan_kalender_autosave(label_user, date_list):
 tab1, tab2, tab3 = st.tabs(["Jadwal Rizal", "Jadwal Thesi", "Rekap Bersamaan"])
 
 # Tab Rizal
+# Tab Rizal
 with tab1:
     kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender_autosave("Rizal", date_list_rizal)
     hadir_rizal = sum(1 for v in kehadiran_rizal.values() if v is True)
+
+    # --- Target full periode (13 -> 12) ---
     min_hadir = math.ceil(hari_kerja_rizal * 0.7)
     maks_bolos = hari_kerja_rizal - min_hadir
-    bolos_rizal = hari_kerja_rizal - hadir_rizal
+    bolos_full_periode = hari_kerja_rizal - hadir_rizal
 
-    st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_rizal} hari**")
-    st.write(f"Total hari kerja: **{hari_kerja_rizal}**")
-    st.write(f"Maks bolos: **{maks_bolos}**")
+    # --- Realisasi sampai hari ini ---
+    hari_kerja_sampai_hari_ini = sum(
+        1 for d in date_list_rizal
+        if d <= today and d.weekday() < 6 and f"{d.day:02d}-{d.month:02d}" not in tanggal_merah
+    )
+    bolos_sampai_hari_ini = hari_kerja_sampai_hari_ini - hadir_sampai_hari_ini_rizal
 
+    st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_rizal} hari** dari {hari_kerja_sampai_hari_ini} hari kerja")
+    st.write(f"Total hari kerja periode penuh: **{hari_kerja_rizal}**")
+    st.write(f"Maks bolos periode penuh: **{maks_bolos}**")
+
+    # --- Gauge untuk bolos sampai hari ini (lebih realistis) ---
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=bolos_rizal,
+        value=bolos_sampai_hari_ini,
         domain={'x': [0, 1], 'y': [0, 1]},
         gauge={
-            'axis': {'range': [0, hari_kerja_rizal]},
+            'axis': {'range': [0, hari_kerja_sampai_hari_ini]},
             'bar': {'color': "red"},
             'steps': [
-                {'range': [0, maks_bolos], 'color': "lightgreen"},
-                {'range': [maks_bolos, hari_kerja_rizal], 'color': "lightcoral"},
+                {'range': [0, max(0, hari_kerja_sampai_hari_ini - math.ceil(hari_kerja_sampai_hari_ini * 0.7))], 'color': "lightgreen"},
+                {'range': [max(0, hari_kerja_sampai_hari_ini - math.ceil(hari_kerja_sampai_hari_ini * 0.7)), hari_kerja_sampai_hari_ini], 'color': "lightcoral"},
             ],
         },
-        title={'text': "Jumlah Bolos"}
+        title={'text': "Jumlah Bolos (sampai hari ini)"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
+    # --- Evaluasi target untuk full periode ---
     if hadir_rizal >= min_hadir:
-        st.success("✅ Target kehadiran tercapai.")
+        st.success("✅ Target kehadiran tercapai (periode penuh).")
     else:
-        st.error("❌ Target kehadiran tidak tercapai.")
+        st.error("❌ Target kehadiran tidak tercapai (periode penuh).")
 
     # Catatan dengan auto-save
     catatan_rizal = st.text_area("Catatan Rizal", height=200, value=st.session_state["catatan_Rizal"])
@@ -212,45 +224,110 @@ with tab1:
         st.session_state["catatan_Rizal"] = catatan_rizal
         simpan_kehadiran("Rizal", kehadiran_rizal, catatan_rizal)
 
-# Tab Thesi
-with tab2:
-    kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender_autosave("Thesi", date_list_thesi)
-    hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
-    min_hadir = math.ceil(hari_kerja_thesi * 0.7)
-    maks_bolos = hari_kerja_thesi - min_hadir
-    bolos_thesi = hari_kerja_thesi - hadir_thesi
 
-    st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_thesi} hari**")
-    st.write(f"Total hari kerja: **{hari_kerja_thesi}**")
-    st.write(f"Maks bolos: **{maks_bolos}**")
+# Tab Rizal
+with tab1:
+    kehadiran_rizal, hari_kerja_rizal, hadir_sampai_hari_ini_rizal = tampilkan_kalender_autosave("Rizal", date_list_rizal)
+    hadir_rizal = sum(1 for v in kehadiran_rizal.values() if v is True)
 
+    # --- Target full periode (13 -> 12) ---
+    min_hadir_rizal = math.ceil(hari_kerja_rizal * 0.7)
+    maks_bolos_rizal = hari_kerja_rizal - min_hadir_rizal
+    bolos_full_periode_rizal = hari_kerja_rizal - hadir_rizal
+
+    # --- Realisasi sampai hari ini ---
+    hari_kerja_sampai_hari_ini_rizal = sum(
+        1 for d in date_list_rizal
+        if d <= today and d.weekday() < 6 and f"{d.day:02d}-{d.month:02d}" not in tanggal_merah
+    )
+    bolos_sampai_hari_ini_rizal = hari_kerja_sampai_hari_ini_rizal - hadir_sampai_hari_ini_rizal
+
+    st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_rizal} hari** dari {hari_kerja_sampai_hari_ini_rizal} hari kerja")
+    st.write(f"Total hari kerja periode penuh: **{hari_kerja_rizal}**")
+    st.write(f"Maks bolos periode penuh: **{maks_bolos_rizal}**")
+
+    # --- Gauge untuk bolos sampai hari ini ---
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=bolos_thesi,
+        value=bolos_sampai_hari_ini_rizal,
         domain={'x': [0, 1], 'y': [0, 1]},
         gauge={
-            'axis': {'range': [0, hari_kerja_thesi]},
+            'axis': {'range': [0, hari_kerja_sampai_hari_ini_rizal]},
             'bar': {'color': "red"},
             'steps': [
-                {'range': [0, maks_bolos], 'color': "lightgreen"},
-                {'range': [maks_bolos, hari_kerja_thesi], 'color': "lightcoral"},
+                {'range': [0, max(0, hari_kerja_sampai_hari_ini_rizal - math.ceil(hari_kerja_sampai_hari_ini_rizal * 0.7))], 'color': "lightgreen"},
+                {'range': [max(0, hari_kerja_sampai_hari_ini_rizal - math.ceil(hari_kerja_sampai_hari_ini_rizal * 0.7)), hari_kerja_sampai_hari_ini_rizal], 'color': "lightcoral"},
             ],
         },
-        title={'text': "Jumlah Bolos"}
+        title={'text': "Jumlah Bolos (sampai hari ini)"}
     ))
     fig.update_layout(height=350, margin=dict(t=50, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
-    if hadir_thesi >= min_hadir:
-        st.success("✅ Target kehadiran tercapai.")
+    # --- Evaluasi target untuk full periode ---
+    if hadir_rizal >= min_hadir_rizal:
+        st.success("✅ Target kehadiran tercapai (periode penuh).")
     else:
-        st.error("❌ Target kehadiran tidak tercapai.")
+        st.error("❌ Target kehadiran tidak tercapai (periode penuh).")
+
+    # Catatan auto-save
+    catatan_rizal = st.text_area("Catatan Rizal", height=200, value=st.session_state["catatan_Rizal"])
+    if catatan_rizal != st.session_state["catatan_Rizal"]:
+        st.session_state["catatan_Rizal"] = catatan_rizal
+        simpan_kehadiran("Rizal", kehadiran_rizal, catatan_rizal)
+
+
+# Tab Thesi
+with tab2:
+    kehadiran_thesi, hari_kerja_thesi, hadir_sampai_hari_ini_thesi = tampilkan_kalender_autosave("Thesi", date_list_thesi)
+    hadir_thesi = sum(1 for v in kehadiran_thesi.values() if v is True)
+
+    # --- Target full periode (11 -> 10) ---
+    min_hadir_thesi = math.ceil(hari_kerja_thesi * 0.7)
+    maks_bolos_thesi = hari_kerja_thesi - min_hadir_thesi
+    bolos_full_periode_thesi = hari_kerja_thesi - hadir_thesi
+
+    # --- Realisasi sampai hari ini ---
+    hari_kerja_sampai_hari_ini_thesi = sum(
+        1 for d in date_list_thesi
+        if d <= today and d.weekday() < 6 and f"{d.day:02d}-{d.month:02d}" not in tanggal_merah
+    )
+    bolos_sampai_hari_ini_thesi = hari_kerja_sampai_hari_ini_thesi - hadir_sampai_hari_ini_thesi
+
+    st.info(f"📅 Jumlah hadir hingga hari ini: **{hadir_sampai_hari_ini_thesi} hari** dari {hari_kerja_sampai_hari_ini_thesi} hari kerja")
+    st.write(f"Total hari kerja periode penuh: **{hari_kerja_thesi}**")
+    st.write(f"Maks bolos periode penuh: **{maks_bolos_thesi}**")
+
+    # --- Gauge untuk bolos sampai hari ini ---
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=bolos_sampai_hari_ini_thesi,
+        domain={'x': [0, 1], 'y': [0, 1]},
+        gauge={
+            'axis': {'range': [0, hari_kerja_sampai_hari_ini_thesi]},
+            'bar': {'color': "red"},
+            'steps': [
+                {'range': [0, max(0, hari_kerja_sampai_hari_ini_thesi - math.ceil(hari_kerja_sampai_hari_ini_thesi * 0.7))], 'color': "lightgreen"},
+                {'range': [max(0, hari_kerja_sampai_hari_ini_thesi - math.ceil(hari_kerja_sampai_hari_ini_thesi * 0.7)), hari_kerja_sampai_hari_ini_thesi], 'color': "lightcoral"},
+            ],
+        },
+        title={'text': "Jumlah Bolos (sampai hari ini)"}
+    ))
+    fig.update_layout(height=350, margin=dict(t=50, b=20))
+    st.plotly_chart(fig, use_container_width=True)
+
+    # --- Evaluasi target untuk full periode ---
+    if hadir_thesi >= min_hadir_thesi:
+        st.success("✅ Target kehadiran tercapai (periode penuh).")
+    else:
+        st.error("❌ Target kehadiran tidak tercapai (periode penuh).")
 
     # Catatan auto-save
     catatan_thesi = st.text_area("Catatan Thesi", height=200, value=st.session_state["catatan_Thesi"])
     if catatan_thesi != st.session_state["catatan_Thesi"]:
         st.session_state["catatan_Thesi"] = catatan_thesi
         simpan_kehadiran("Thesi", kehadiran_thesi, catatan_thesi)
+
 
 # Tab Rekap Bersamaan
 with tab3:
