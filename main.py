@@ -62,7 +62,7 @@ rekap_date_list = [start_rekap + timedelta(days=i)
 # --------------------------
 # Tanggal merah (libur nasional)
 # --------------------------
-tanggal_merah = {"01-01", "17-08", "25-12", "10-04", "11-04", "12-04"}
+tanggal_merah = {"01-01", "17-08", "25-12", "10-04", "11-04", "12-04", "05-09"}
 
 # --------------------------
 # Load dari MongoDB
